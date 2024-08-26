@@ -12,7 +12,7 @@
     <PackageIcon>favicon.png</PackageIcon>
     <Authors>Garth</Authors>
     <Company>Garth</Company>
-    <Version>0.1.0</Version>
+    <Version>0.1.2</Version>
     <Description>文件高速批量重命名工具</Description>
     <Copyright>Copyright (c) 2024 Garth. All rights reserved.</Copyright>
     <PackageReadmeFile>README.md</PackageReadmeFile>

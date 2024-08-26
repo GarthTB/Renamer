@@ -39,13 +39,13 @@ namespace Renamer.Tools
         /// <summary> 按模式递推来执行重命名 </summary>
         public static void RunA() => Run(GetNewNamesA);
 
-        private static string[] GetNewNamesA(FileInfo[] origin)
+        private static List<string> GetNewNamesA(List<FileInfo> origin)
         {
-            var newNames = new string[origin.Length];
+            var newNames = Enumerable.Repeat(string.Empty, origin.Count).ToList();
             var Convert = Dele.ConvName(pattern, DateTime.Now);
             var n = int.Parse(firstN);
             var format = $"D{firstN.Length}";
-            _ = Parallel.For(0, origin.Length, i
+            _ = Parallel.For(0, origin.Count, i
                 => newNames[i] = Convert(origin[i], (n + i).ToString(format)));
             return newNames;
         }
@@ -57,14 +57,14 @@ namespace Renamer.Tools
         /// <summary> 按查找替换来执行重命名 </summary>
         public static void RunB() => Run(GetNewNamesB);
 
-        private static string[] GetNewNamesB(FileInfo[] origin)
+        private static List<string> GetNewNamesB(List<FileInfo> origin)
         {
-            var newNames = new string[origin.Length];
+            var newNames = Enumerable.Repeat(string.Empty, origin.Count).ToList();
             static string Convert(string name)
                 => useReg
                     ? Regex.Replace(name, find, replace)
                     : name.Replace(find, replace);
-            _ = Parallel.For(0, origin.Length, i
+            _ = Parallel.For(0, origin.Count, i
                 => newNames[i] = Convert(File.TrimName(origin[i])));
             return newNames;
         }
@@ -73,15 +73,18 @@ namespace Renamer.Tools
 
         #region 共同算法
 
-        private static void Run(Func<FileInfo[], string[]> getNewNames)
+        private static void Run(Func<List<FileInfo>, List<string>> getNewNames)
         {
             try
             {
                 var oldFiles = GetOldFiles();
                 var newNames = getNewNames(oldFiles);
-                if (File.NeedRename(oldFiles, newNames))
-                    Rename(oldFiles, newNames);
-                else MsgB.Ok("文件名已完全符合要求，无需重命名。", "提示");
+
+                // 正则表达式没匹配到的会在这步被筛除
+                var shitNum = File.FiltNames(oldFiles, newNames);
+                if (shitNum == -1)
+                    MsgB.Ok("旧文件名全部符合或新文件名全不可用，未进行任何修改。", "提示");
+                else Rename(oldFiles, newNames, shitNum);
             }
             catch (Exception e)
             {
@@ -89,31 +92,30 @@ namespace Renamer.Tools
             }
         }
 
-        private static FileInfo[] GetOldFiles()
+        private static List<FileInfo> GetOldFiles()
         {
             var files = filter
                 ? Directory.GetFiles(path).Select(f => new FileInfo(f)).Where(f => f.Extension.Equals(filt_ext, StringComparison.CurrentCultureIgnoreCase))
                 : Directory.GetFiles(path).Select(f => new FileInfo(f));
             var Sort = Dele.SortBy(ruleID, reverse);
-            var oldFiles = Sort(files).ToArray();
+            var oldFiles = Sort(files).ToList();
             return oldFiles;
         }
 
-        private static void Rename(FileInfo[] oldFiles, string[] newNames)
+        private static void Rename(List<FileInfo> oldFiles, List<string> newNames, int shitNum)
         {
             int total = 0;
-            _ = Parallel.For(0, oldFiles.Length, i =>
+            _ = Parallel.For(0, oldFiles.Count, i =>
             {
-                string newName = Path.Combine(path, newNames[i] + oldFiles[i].Extension);
-                if (string.IsNullOrWhiteSpace(newNames[i])
-                    || System.IO.File.Exists(newName))
+                string newName = Path.Combine(path, $"{newNames[i]}{oldFiles[i].Extension}");
+                if (System.IO.File.Exists(newName))
                     return;
                 oldFiles[i].MoveTo(newName);
                 _ = Interlocked.Increment(ref total);
             });
-            if (total == oldFiles.Length)
-                MsgB.Ok($"成功重命名全部{total}个文件。", "提示");
-            else MsgB.Ok($"成功重命名{total}个文件，跳过{oldFiles.Length - total}个名称被占或新名为空的文件。", "提示");
+            MsgB.Ok($"成功重命名{total}个文件，\n"
+                    + $"忽略{shitNum}个名称为空或无需修改的文件，\n"
+                    + $"跳过{oldFiles.Count - total}个名称被占的文件。", "提示");
         }
 
         #endregion

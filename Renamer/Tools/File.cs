@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Concurrent;
+using System.IO;
 using System.Text.RegularExpressions;
 
 namespace Renamer.Tools
@@ -51,17 +52,34 @@ namespace Renamer.Tools
         public static string TrimName(FileInfo file)
             => Path.GetFileNameWithoutExtension(file.Name);
 
-        public static bool NeedRename(FileInfo[] files, string[] names)
+        /// <summary> 去除没变的文件名以及空白新名 </summary>
+        /// <returns> 去除的数量，-1则全部清除 </returns>
+        public static int FiltNames(List<FileInfo> files, List<string> names)
         {
-            var need = 0;
-            _ = Parallel.For(0, files.Length, (i, state) =>
+            var shit = new ConcurrentBag<int>();
+
+            _ = Parallel.For(0, files.Count, i =>
             {
-                if (TrimName(files[i]) == names[i])
-                    return;
-                _ = Interlocked.Exchange(ref need, 1);
-                state.Stop();
+                if (string.IsNullOrWhiteSpace(names[i])
+                    || TrimName(files[i]) == names[i])
+                    shit.Add(i);
             });
-            return need == 1;
+
+            if (shit.IsEmpty)
+                return 0;
+
+            var span = shit.OrderDescending().ToArray().AsSpan();
+            if (span.Length == files.Count)
+                return -1;
+
+            for (int i = 0; i < span.Length; i++)
+            {
+                int index = span[i];
+                files.RemoveAt(index);
+                names.RemoveAt(index);
+            }
+
+            return span.Length;
         }
     }
 }

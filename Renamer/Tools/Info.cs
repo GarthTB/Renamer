@@ -6,7 +6,7 @@ namespace Renamer.Tools
     internal static class Info
     {
         /// <summary> 版本号 </summary>
-        private const string version = "0.1.0";
+        private const string version = "0.1.2";
 
         /// <summary> 帮助信息 </summary>
         public static void Help()
