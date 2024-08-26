@@ -81,7 +81,8 @@
                         VerticalContentAlignment="Center"
                         MaxLength="255"
                         Padding="2,1,2,1"
-                        TextChanged="Tx_FirstN_TextChanged" />
+                        TextChanged="Tx_FirstN_TextChanged"
+                        ToolTip="一定要与占位符等长" />
                     <ComboBox
                         x:Name="Cb_Rule"
                         Width="96"
@@ -174,6 +175,7 @@
                         VerticalAlignment="Top"
                         MaxLength="255"
                         Padding="2,1,2,1"
+                        TextChanged="Tx_Find_TextChanged"
                         TextWrapping="Wrap" />
                     <TextBox
                         x:Name="Tx_Replace"
@@ -183,16 +185,20 @@
                         VerticalAlignment="Top"
                         VerticalContentAlignment="Center"
                         MaxLength="255"
-                        Padding="2,1,2,1" />
+                        Padding="2,1,2,1"
+                        TextChanged="Tx_Replace_TextChanged" />
                     <CheckBox
                         x:Name="Ch_Regex"
                         Height="28"
-                        Margin="210,218,0,14"
+                        Margin="162,218,0,14"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Top"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
-                        Content="正则" />
+                        Checked="Ch_Regex_Checked"
+                        Content="正则表达式"
+                        ToolTip="使用正则表达式来查找，而不是按原文"
+                        Unchecked="Ch_Regex_Unchecked" />
                     <CheckBox
                         x:Name="Ch_Filter_B"
                         Height="28"
@@ -211,6 +217,7 @@
                         Margin="344,218,20,0"
                         VerticalAlignment="Top"
                         Background="#FFE5E5E5"
+                        Click="Bt_Run_B_Click"
                         Content="执行" />
                 </Grid>
             </TabItem>

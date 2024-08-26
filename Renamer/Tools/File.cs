@@ -33,7 +33,7 @@ namespace Renamer.Tools
         {
             var name = TrimName(file);
             var matches = Digits().Matches(name);
-            var last = matches[^1];
+            var last = matches.Last();
             var holder = new string('?', last.Length);
             var span = name.AsSpan();
             var pattern = string.Concat(
@@ -48,14 +48,20 @@ namespace Renamer.Tools
                     yield return Path.GetExtension(f).ToLower();
         }
 
-        public static string TrimName(FileInfo file) => Path.GetFileNameWithoutExtension(file.Name);
+        public static string TrimName(FileInfo file)
+            => Path.GetFileNameWithoutExtension(file.Name);
 
         public static bool NeedRename(FileInfo[] files, string[] names)
         {
-            for (int i = 0; i < files.Length; i++)
+            var need = 0;
+            _ = Parallel.For(0, files.Length, (i, state) =>
+            {
                 if (TrimName(files[i]) != names[i])
-                    return true;
-            return false;
+                    return;
+                _ = Interlocked.Exchange(ref need, 1);
+                state.Stop();
+            });
+            return need == 1;
         }
     }
 }

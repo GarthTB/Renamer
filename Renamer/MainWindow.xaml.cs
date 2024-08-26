@@ -62,7 +62,6 @@ namespace Renamer
             TI_Filter.IsEnabled = false;
             Cb_Extensions.ItemsSource = null;
             Cb_Extensions.SelectedItem = null;
-            // Cb_Extensions.SelectedIndex = -1;
         }
 
         #endregion
@@ -122,6 +121,33 @@ namespace Renamer
 
         #endregion
 
+        #region 过滤器
+
+        private void Ch_Filter_A_Checked(object sender, RoutedEventArgs e)
+        {
+            Ch_Filter_B.IsChecked = true;
+            TI_Filter.IsEnabled = true;
+            Core.filter = true;
+        }
+
+        private void Ch_Filter_B_Checked(object sender, RoutedEventArgs e)
+            => Ch_Filter_A.IsChecked = true;
+
+        private void Ch_Filter_A_Unchecked(object sender, RoutedEventArgs e)
+        {
+            Ch_Filter_B.IsChecked = false;
+            TI_Filter.IsEnabled = false;
+            Core.filter = false;
+        }
+
+        private void Ch_Filter_B_Unchecked(object sender, RoutedEventArgs e)
+            => Ch_Filter_A.IsChecked = false;
+
+        private void Cb_Extensions_SelectionChanged(object sender, SelectionChangedEventArgs e)
+            => Core.filt_ext = Cb_Extensions.SelectedItem as string ?? string.Empty;
+
+        #endregion
+
         #region 模式和起始编号
 
         private void Tx_Pattern_TextChanged(object sender, TextChangedEventArgs e)
@@ -164,33 +190,6 @@ namespace Renamer
 
         #endregion
 
-        #region 过滤器
-
-        private void Ch_Filter_A_Checked(object sender, RoutedEventArgs e)
-        {
-            Ch_Filter_B.IsChecked = true;
-            TI_Filter.IsEnabled = true;
-            Core.filter = true;
-        }
-
-        private void Ch_Filter_B_Checked(object sender, RoutedEventArgs e)
-            => Ch_Filter_A.IsChecked = true;
-
-        private void Ch_Filter_A_Unchecked(object sender, RoutedEventArgs e)
-        {
-            Ch_Filter_B.IsChecked = false;
-            TI_Filter.IsEnabled = false;
-            Core.filter = false;
-        }
-
-        private void Ch_Filter_B_Unchecked(object sender, RoutedEventArgs e)
-            => Ch_Filter_A.IsChecked = false;
-
-        private void Cb_Extensions_SelectionChanged(object sender, SelectionChangedEventArgs e)
-            => Core.filt_ext = Cb_Extensions.SelectedItem as string ?? string.Empty;
-
-        #endregion
-
         #region 执行模式递推的重命名
 
         private void Bt_Run_A_Click(object sender, RoutedEventArgs e)
@@ -199,6 +198,47 @@ namespace Renamer
                 Core.RunA();
             else MsgB.Ok("文件编号余量不足，无法继续！", "提示");
         }
+
+        #endregion
+
+        #region 查找替换配置
+
+        private void Tx_Find_TextChanged(object sender, TextChangedEventArgs e)
+            => ReplaceChanged(Tx_Find.Text, Tx_Replace.Text);
+
+        private void Tx_Replace_TextChanged(object sender, TextChangedEventArgs e)
+            => ReplaceChanged(Tx_Find.Text, Tx_Replace.Text);
+
+        private void ReplaceChanged(string find, string replace)
+        {
+            if (!string.IsNullOrWhiteSpace(find)
+                && (string.IsNullOrWhiteSpace(replace)
+                || Tools.File.NameValid(replace))
+                && find != replace)
+            {
+                Core.find = find;
+                Core.replace = replace;
+                Bt_Run_B.IsEnabled = Core.CheckB();
+            }
+            else
+            {
+                Core.find = Core.replace = string.Empty;
+                Bt_Run_B.IsEnabled = false;
+            }
+        }
+
+        private void Ch_Regex_Checked(object sender, RoutedEventArgs e)
+            => Core.useReg = true;
+
+        private void Ch_Regex_Unchecked(object sender, RoutedEventArgs e)
+            => Core.useReg = false;
+
+        #endregion
+
+        #region 执行查找替换的重命名
+
+        private void Bt_Run_B_Click(object sender, RoutedEventArgs e)
+            => Core.RunB();
 
         #endregion
     }
