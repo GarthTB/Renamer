@@ -56,7 +56,7 @@ namespace Renamer.Tools
             var need = 0;
             _ = Parallel.For(0, files.Length, (i, state) =>
             {
-                if (TrimName(files[i]) != names[i])
+                if (TrimName(files[i]) == names[i])
                     return;
                 _ = Interlocked.Exchange(ref need, 1);
                 state.Stop();
