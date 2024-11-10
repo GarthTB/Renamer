@@ -43,11 +43,9 @@ namespace Renamer.Tools
         }
 
         public static IEnumerable<string> GetExtensions(string path)
-        {
-            foreach (var f in Directory.GetFiles(path))
-                if (!string.IsNullOrEmpty(Path.GetExtension(f)))
-                    yield return Path.GetExtension(f).ToLower();
-        }
+            => Directory.GetFiles(path)
+                        .Where(f => !string.IsNullOrEmpty(Path.GetExtension(f)))
+                        .Select(f => Path.GetExtension(f).ToLower());
 
         public static string TrimName(FileInfo file)
             => Path.GetFileNameWithoutExtension(file.Name);
