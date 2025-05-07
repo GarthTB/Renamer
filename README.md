@@ -1,5 +1,7 @@
 # 文件批量重命名工具
 
+## 20250507 由于有诸多相同功能的程序，此项目不再维护。
+
 ## 环境依赖
 
 - [.NET 8.0运行时](https://dotnet.microsoft.com/zh-cn/download/dotnet/8.0)
